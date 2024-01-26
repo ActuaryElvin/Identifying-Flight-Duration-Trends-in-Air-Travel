@@ -1,0 +1,94 @@
+---
+title: "Identifying Flight Duration Trends in Air Travel"
+author: "Elvin Abdullayev"
+date: "24-01-2024"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+## 1. Preparing the data
+
+## Load the flight, airline, and airport data to begin your analysis.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(dplyr)
+library(readr)
+
+airlines <- read_csv("airlines.csv")
+airports <- read_csv("airports.csv")
+flights <- read_csv("flights2022-h2.csv")
+```
+
+## 2. Complex data joining
+
+## Join the flights, airlines, and airports data frames together for a comprehensive dataset.
+
+```{r}
+complex_join <- flights %>%
+  left_join(airlines, by = "carrier") %>%
+  left_join(airports, by = c("dest" = "faa")) %>%
+  rename(airline_name = name.x, airport_name = name.y)
+
+print(complex_join)
+```
+
+## 3. Data transformation
+
+## Transform the data to include flight duration for each flight.
+
+```{r}
+transformed_data <- complex_join %>%
+  mutate(flight_duration = air_time / 60)
+print(transformed_data)
+```
+
+## 4. Further data analysis
+
+## Determine the average flight duration and number of flights for each airline and airport combination.
+
+```{r}
+analysis_result <- transformed_data %>%
+  group_by(airline_name, airport_name) %>%
+  summarise(avg_flight_duration = mean(flight_duration), count = n()) %>%
+  ungroup()
+
+print(analysis_result)
+```
+## 5. Finding the most frequent flight destination
+
+## Analyze which airline and city have the most flights from NYC.
+
+```{r}
+frequent <- analysis_result %>%
+  arrange(desc(count))
+
+print(frequent)
+```
+
+## 6. Determining the longest flight duration
+
+## Identify which airline and airport have the longest average flight duration from NYC.
+
+```{r}
+longest <- analysis_result %>%
+  arrange(desc(avg_flight_duration))
+
+print(longest)
+```
+
+## 7. Discovering the least common destination
+
+## Find out the least common destination airport for flights departing from JFK.
+
+```{r}
+transformed_data %>% 
+  filter(origin == "JFK") %>% 
+  group_by(airport_name) %>% 
+  summarize(count = n()) %>% 
+  arrange(count)
+least <- "Eagle County Regional Airport"
+```
+
